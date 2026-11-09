@@ -98,4 +98,4 @@ We will test that:
 ### GenAI Note
 
 Wenxin used ChatGPT to refine the project specification, review my code, help write model methods and Javadoc comments, suggest test cases, and draft README reflection sections.
-
+Yug used ChatGPT to debug LinkedQueue class and to verify my class methods and fields align with our spec.
