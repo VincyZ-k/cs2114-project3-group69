@@ -99,3 +99,4 @@ We will test that:
 
 Wenxin used ChatGPT to refine the project specification, review my code, help write model methods and Javadoc comments, suggest test cases, and draft README reflection sections.
 Yug used ChatGPT to debug LinkedQueue class and to verify my class methods and fields align with our spec.
+Ashwin used ChatGPT to help outline the LaundryView and LaundryController classes. He first asked for an outline, then sample methods and fields. He used the general ideas but adjusted them for the project. ChatGPT helped with planning and structure, but the code still needed to be adapted and tested.
