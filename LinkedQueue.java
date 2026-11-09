@@ -39,7 +39,7 @@ public class LinkedQueue<T>
             throw new IllegalArgumentException();
         }
         
-        Node<T> newNode = head;
+        Node<T> newNode = new Node<T>(item);
         if (isEmpty()) 
         {
             head = new Node<T>(item);
