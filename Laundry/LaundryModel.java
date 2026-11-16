@@ -25,9 +25,8 @@ public class LaundryModel
     private int nextVisitorID;
 
     /**
-     * Creates three waiting queues and eight available machines.
-     * Machines 1-2 are large washers, 3-4 are small washers,
-     * and 5-8 are dryers.
+     * Creates three waiting queues and eight available machines. Machines 1-2
+     * are large washers, 3-4 are small washers, and 5-8 are dryers.
      */
     public LaundryModel()
     {
@@ -60,6 +59,7 @@ public class LaundryModel
         }
     }
 
+
     /**
      * Validates a name and returns it without surrounding spaces.
      *
@@ -67,8 +67,8 @@ public class LaundryModel
      *            the name entered by the user
      * @return the trimmed name
      * @throws IllegalArgumentException
-     *             if the name is null, blank, longer than 50 characters
-     *             after trimming, or contains control characters
+     *             if the name is null, blank, longer than 50 characters after
+     *             trimming, or contains control characters
      */
     public String validateName(String rawName)
     {
@@ -97,59 +97,72 @@ public class LaundryModel
         return name;
     }
 
+
     /**
-     * Registers a new visitor and assigns an available matching machine,
-     * or adds the visitor to the matching waiting queue.
-     * 
+     * Registers a visitor without automatic drying.
+     *
      * @param name
      *            the visitor's name
      * @param type
      *            the requested equipment type
-     * @return a snapshot of the assigned machine, or an empty Optional
-     *         if the visitor was queued
-     * @throws IllegalArgumentException
-     *             if the name is invalid or type is null
+     * @return the assigned machine, or empty if queued
      */
-    public Optional<Machine> requestMachine(
-        String name,
-        MachineType type)
+    public Optional<Machine> requestMachine(String name, MachineType type)
+    {
+        return requestMachine(name, type, false);
+    }
+
+
+    /**
+     * Registers a visitor with a drying preference.
+     *
+     * @param name
+     *            the visitor's name
+     * @param type
+     *            the requested equipment type
+     * @param needsDrying
+     *            whether drying is requested after washing
+     * @return the assigned machine, or empty if queued
+     * @throws IllegalArgumentException
+     *             if the input is invalid
+     */
+    public
+        Optional<Machine>
+        requestMachine(String name, MachineType type, boolean needsDrying)
     {
         String cleanedName = validateName(name);
         LinkedQueue<Visitor> queue = queueFor(type);
 
+        if (type == MachineType.DRYER && needsDrying)
+        {
+            throw new IllegalArgumentException(
+                "Automatic drying is only available after washing");
+        }
 
-        Visitor visitor = new Visitor(
-            nextVisitorID,
-            cleanedName,
-            type);
+        Visitor visitor =
+            new Visitor(nextVisitorID, cleanedName, type, needsDrying);
         nextVisitorID++;
 
         return assignOrQueue(visitor, type, queue);
     }
 
+
     /**
-     * Finishes the current visitor's cycle and assigns the next visitor
-     * from the matching waiting queue, if any.
-     * If no visitors are waiting, the machine remains available.
-     * Visitors who finish washing are recorded for a later dryer request.
+     * Completes a cycle and serves the next waiting visitor. Automatically
+     * transfers wash-and-dry visitors to dryer service.
      *
      * @param machineID
-     *            the ID of the machine to finish
+     *            the machine's ID
      * @return the visitor who completed the cycle
      * @throws IllegalArgumentException
-     *             if the machine ID does not exist
+     *             if the ID does not exist
      * @throws IllegalStateException
-     *             if the machine is already available
+     *             if the machine is idle
      */
     public Visitor finish(int machineID)
     {
         Machine machine = findMachine(machineID);
         Visitor finished = machine.release();
-
-        if (machine.getType() != MachineType.DRYER)
-        {
-            finishedWashers.add(finished);
-        }
 
         LinkedQueue<Visitor> queue = queueFor(machine.getType());
 
@@ -158,28 +171,38 @@ public class LaundryModel
             machine.assign(queue.dequeue());
         }
 
+        if (machine.getType() != MachineType.DRYER)
+        {
+            finishedWashers.add(finished);
+
+            if (finished.needsDrying())
+            {
+                requestDryer(finished);
+            }
+        }
+
         return finished;
     }
 
+
     /**
-     * Sends a visitor who finished washing to a dryer.
-     * If all dryers are occupied, adds the visitor to the dryer queue.
-     * Each completed wash may be sent to drying only once.
+     * Sends a visitor who finished washing to a dryer. If all dryers are
+     * occupied, adds the visitor to the dryer queue. Each completed wash may be
+     * sent to drying only once.
      *
      * @param finished
      *            the visitor returned by finish after a wash
-     * @return a snapshot of the assigned dryer, or an empty Optional
-     *         if the visitor was queued
+     * @return a snapshot of the assigned dryer, or an empty Optional if the
+     *             visitor was queued
      * @throws IllegalArgumentException
-     *             if the visitor is null, has not finished washing in
-     *             this model, or has already requested drying
+     *             if the visitor is null, has not finished washing in this
+     *             model, or has already requested drying
      */
     public Optional<Machine> requestDryer(Visitor finished)
     {
         if (finished == null)
         {
-            throw new IllegalArgumentException(
-                "Visitor cannot be null");
+            throw new IllegalArgumentException("Visitor cannot be null");
         }
 
         if (!finishedWashers.contains(finished))
@@ -189,19 +212,18 @@ public class LaundryModel
                     + "and not requested drying yet");
         }
 
-        Optional<Machine> result = assignOrQueue(
-            finished,
-            MachineType.DRYER,
-            dryerQueue);
+        Optional<Machine> result =
+            assignOrQueue(finished, MachineType.DRYER, dryerQueue);
 
         finishedWashers.remove(finished);
 
         return result;
     }
 
+
     /**
-     * Gets snapshots of all eight machines.
-     * Changing the returned list or machines does not change the model.
+     * Gets snapshots of all eight machines. Changing the returned list or
+     * machines does not change the model.
      *
      * @return a new list of machine snapshots
      */
@@ -217,6 +239,7 @@ public class LaundryModel
         return result;
     }
 
+
     /**
      * Gets a snapshot of one machine.
      *
@@ -230,6 +253,7 @@ public class LaundryModel
     {
         return snapshot(findMachine(machineID));
     }
+
 
     /**
      * Gets a copy of the waiting list for an equipment type.
@@ -245,6 +269,7 @@ public class LaundryModel
         return queueFor(type).toList();
     }
 
+
     /**
      * Gets the number of visitors waiting for an equipment type.
      *
@@ -259,6 +284,7 @@ public class LaundryModel
         return queueFor(type).size();
     }
 
+
     /**
      * Finds the waiting queue for an equipment type.
      *
@@ -272,8 +298,7 @@ public class LaundryModel
     {
         if (type == null)
         {
-            throw new IllegalArgumentException(
-                "Select an equipment type");
+            throw new IllegalArgumentException("Select an equipment type");
         }
 
         switch (type)
@@ -288,14 +313,14 @@ public class LaundryModel
                 return dryerQueue;
 
             default:
-                throw new IllegalArgumentException(
-                    "Unknown equipment type");
+                throw new IllegalArgumentException("Unknown equipment type");
         }
     }
 
+
     /**
-     * Assigns a matching available machine or adds the visitor
-     * to the supplied queue.
+     * Assigns a matching available machine or adds the visitor to the supplied
+     * queue.
      *
      * @param visitor
      *            the visitor requesting service
@@ -323,6 +348,7 @@ public class LaundryModel
         return Optional.empty();
     }
 
+
     /**
      * Finds an internal machine by ID.
      *
@@ -342,13 +368,13 @@ public class LaundryModel
             }
         }
 
-        throw new IllegalArgumentException(
-            "Unknown machine ID: " + machineID);
+        throw new IllegalArgumentException("Unknown machine ID: " + machineID);
     }
 
+
     /**
-     * Copies a machine's current state so callers cannot modify
-     * the internal machine.
+     * Copies a machine's current state so callers cannot modify the internal
+     * machine.
      *
      * @param original
      *            the machine to copy
@@ -356,9 +382,7 @@ public class LaundryModel
      */
     private Machine snapshot(Machine original)
     {
-        Machine copy = new Machine(
-            original.getMachineID(),
-            original.getType());
+        Machine copy = new Machine(original.getMachineID(), original.getType());
 
         if (!original.isAvailable())
         {
