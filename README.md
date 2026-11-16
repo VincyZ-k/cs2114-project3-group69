@@ -82,3 +82,4 @@ Finally, we will demonstrate an invalid input and show the model test results.
 ### GenAI Note
 
 Wenxin used ChatGPT to help implement and review automatic drying, connect the checkbox to the controller and model, suggest test cases, and draft the README reflection on how our design supported the change.
+Ashwin used ChatGPT to help create the LaundryView, LaundryController, and their test classes. I first asked for help outlining the classes, then requested sample code and JUnit tests. I later asked for the tests to match our class format and cover all branches. I used the generated code as a starting point and reviewed it for the project. ChatGPT helped with structure and test cases, but the code still needed to be tested for errors and coverage.
