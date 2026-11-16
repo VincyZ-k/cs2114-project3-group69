@@ -3,10 +3,10 @@ package Laundry;
 public class Visitor
 {
     // ~ Fields ................................................................
-    private int visitorID;
-    private String name;
-    private MachineType selectedType;
-    private boolean needsDrying;
+    private final int visitorID;
+    private final String name;
+    private final MachineType selectedType;
+    private final boolean needsDrying;
 
     // ~ Constructors ..........................................................
     public Visitor(int visitorID, String name, MachineType selectedType)
