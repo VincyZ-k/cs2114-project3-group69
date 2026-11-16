@@ -42,8 +42,8 @@ public class LinkedQueue<T>
         Node<T> newNode = new Node<T>(item);
         if (isEmpty()) 
         {
-            head = new Node<T>(item);
-            tail = head;
+            head = newNode;
+            tail = newNode;
         }
         else
         {
@@ -70,8 +70,7 @@ public class LinkedQueue<T>
             tail = null;
         }
 
-        return removed;
-        
+        return removed;   
     }
     
     public T peek()
