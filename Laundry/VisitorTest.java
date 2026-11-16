@@ -1,38 +1,38 @@
 package Laundry;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import student.TestCase;
 
 public class VisitorTest
+    extends TestCase
 {
-    //~ Fields ................................................................
+    // ~ Fields ................................................................
     private Visitor visitor;
-    //~ Constructors ..........................................................
 
-    //~Public  Methods ........................................................
-    @BeforeEach
+    // ~ Constructors ..........................................................
+
+    // ~Public Methods .........................................................
+
+    @Override
     public void setUp()
     {
         visitor = new Visitor(1, "john", null);
     }
-    
-    @Test
+
+
     public void testGetVisitorID()
     {
         assertEquals(1, visitor.getVisitorID());
     }
-    
-    @Test
+
+
     public void testGetName()
     {
         assertEquals("john", visitor.getName());
     }
-    
-    @Test
+
+
     public void testGetSelectedType()
     {
         assertEquals(null, visitor.getSelectedType());
-    
     }
 }
