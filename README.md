@@ -1,102 +1,84 @@
-# cs2114-project3-group69
-A laundromat simulator that helps users understand how customers wait for and use laundry machines.
-
 ## Reflection
 
-### Changes from the Specification
+### How Our Design Absorbed the Change
 
-We kept the planned MVC structure, three FIFO queues, and eight machines. The main public method signatures remain consistent with the specification.
+Our new feature is automatic wash-to-dry transfer. During registration, users can select “Dry after washing.” When their wash finishes, the model assigns an available dryer or adds them to the end of the dryer queue.
 
-We added a `LaundryApp` class to create the model, view, and controller and launch the application. We also added private helper methods in `LaundryModel` for selecting queues, locating machines, assigning visitors, and creating machine snapshots.
+The feature changed `Visitor`, `LaundryModel`, `LaundryView`, and `LaundryController`, matching our D3 prediction. `Visitor` stores the drying preference, the model handles transfers, the view provides a checkbox, and the controller passes the preference to the model. `LinkedQueue`, `Machine`, and `MachineType` did not need changes.
 
-The specification described returning a copy of the machine list. Our implementation also copies the machine objects so callers cannot change internal machine state through the returned objects.
+We added a four-argument `Visitor` constructor and a three-argument `requestMachine()` method. The original versions remain available and default to no automatic drying, preserving existing calls.
 
-We added tracking of visitors who have finished washing. This lets `requestDryer()` reject visitors who have not finished washing or have already requested drying. Corresponding tests cover unfinished, duplicate, and already-dried transfers.
+### Model / View Boundary
 
-Validation remains in the model, as planned. The controller catches exceptions and asks the view to display messages.
+The model still contains no interface code. The view knows the user's drying selection and displays machine states and waiting lists, but does not decide how transfers happen. The controller forwards the selection and refreshes the display after model operations.
 
-### Model Independence
+No queueing or assignment logic had to move into the view or controller.
 
-The model operates independently of the user interface. LaundryModel handles validation, waiting queues, machine assignment, and cycle completion without referencing the view or controller. The controller calls model methods and passes updated information to the view. Machine snapshots and waiting-list copies protect the model’s internal state. We can test the model directly without opening the interface.
+### Changes from Our D3 Plan
 
-### Our Original Unknowns
+We implemented automatic transfers while retaining manual cycle completion. We did not add simulated cycle durations.
 
-We worked out how button listeners connect user actions to controller methods and how the controller refreshes the display. We also developed tests that exercise the model independently of the interface.
+We retained the manual “Send to dryer” option for visitors who did not select automatic drying. This option still remembers only the most recent visitor who finished washing without automatic drying.
 
-We identified an enqueue error in `LinkedQueue`: it reused the head node instead of creating a new node. The correction must be included in the integrated version. Empty-queue handling also requires resetting both head and tail when the last element leaves.
+We added model tests for automatic transfers, FIFO order when dryers are full, wash-only requests, duplicate dryer requests, and invalid drying selections. The existing Visitor, Controller, and View tests have not yet been updated for the new feature.
 
-We still need to verify the complete application and tests together.
+### Remaining Limitations
 
-### What Does Not Work Yet
+The updated tests and complete application still need a final verification run. We cannot yet claim that all tests pass in the integrated project.
 
-The controller currently remembers only the most recent visitor who finished washing. If several visitors finish before requesting drying, earlier visitors cannot be selected through the current interface.
+Visitor tests do not yet cover the new constructor or drying preference. Controller and View tests do not yet cover the checkbox or forwarding its value.
 
-Repeated Finish actions can complete successive visitors because each action represents a completed cycle. The application does not currently distinguish an accidental double-click from two intentional actions.
+Cycle completion is manual. Repeated Finish actions can complete successive visitors; accidental double-click protection has not been implemented.
 
 ## Next Steps
 
-### Finish the MVP
+### Remaining Work for the Final Build
 
-1. Fix the queue's enqueue operation and confirm all classes use the same package.
-2. Resolve test dependencies and run `MachineTest` and `LaundryModelTest`.
-3. Verify registration, machine assignment, FIFO service, and error messages through the interface.
-4. Replace the single most-recent-finished-visitor selection with a way to select among visitors who finished washing and still need drying.
-5. Document the final test results and any remaining limitations.
-
-### Change Feature: Automatic Wash-to-Dry Transfer
-
-We will let visitors request washing and drying when they register. When washing finishes, the model will automatically assign them to an available dryer or add them to the end of the dryer queue.
-
-We predict changes to:
-
-- **Model:** `Visitor` will store whether drying is requested. `LaundryModel` will accept this choice and coordinate the transfer after washing.
-- **View:** `LaundryView` will provide a wash-and-dry option and display transfer results.
-- **Controller:** `LaundryController` will pass the new registration choice to the model and refresh the display.
-
-`LinkedQueue`, `Machine`, and `MachineType` should not need changes because their existing responsibilities still apply.
+1. Run all existing and new tests and fix any failures.
+2. Update Visitor tests for both constructors and the drying preference.
+3. Update Controller and View tests for the new registration option.
+4. Verify automatic transfers through the interface with both available and occupied dryers.
+5. Review messages and the remaining manual-drying limitation.
+6. Finalize documentation and rehearse the demonstration.
 
 ### Stretch Goals
 
-We are committing to automatic wash-to-dry transfer. We are deferring simulated cycle durations, estimated waiting times, machine breakdowns, and queue switching to keep Deliverable 4 manageable.
+We are committing to automatic wash-to-dry transfer. We are deferring simulated cycle durations, wait-time estimates, machine breakdowns, and queue switching.
 
-### New Tests
+### Three-Minute Demo
 
-We will test that:
+We will first show registration and assignment to an available washer. We will then fill a washer category to demonstrate FIFO waiting and reassignment.
 
-- Wash-only visitors do not transfer automatically.
-- Wash-and-dry visitors receive an available dryer after washing.
-- Visitors join the dryer queue when all dryers are occupied.
-- Transfers join behind people already waiting for dryers.
-- Both the washer queue and dryer queue remain correct after a transfer.
-- Invalid requests do not change state.
-- A visitor cannot receive duplicate dryer assignments.
+Next, we will register a visitor with automatic drying and finish their wash to show transfer to an available dryer. We will also show that transfers join the end of the dryer queue when dryers are full.
 
-### Ownership
+Finally, we will demonstrate an invalid input and show the model test results.
 
-| Member | Planned Work |
+### Planned Ownership
+
+| Member | Remaining Work |
 |---|---|
-| Wenxin | Update `LaundryModel` for automatic transfers; expand model tests. |
-| Yug | Add the drying preference to `Visitor`; fix and test `LinkedQueue`. |
-| Ashwin | Update the view and controller, including selection of finished visitors and the new registration option. |
-| All members | Review interfaces, integrate changes, and verify the complete workflow. |
+| Wenxin | Verify automatic-transfer logic, expand model tests as needed, and update documentation. |
+| Yug | Update Visitor tests and verify the Queue implementation and tests. |
+| Ashwin | Update Controller and View tests and review interface behavior. |
+| All members | Integrate changes, verify the complete application, and prepare the demo. |
 
 ## Attribution
 
-| Class / Test File | Member | Contribution |
+| Class / Test File | Member(s) | Contributions |
 |---|---|---|
-| `MachineType.java` | Wenxin | Developed equipment types and documentation with GenAI assistance. |
-| `Machine.java` | Wenxin | Developed machine state, assignment, release, and validation with GenAI assistance. |
-| `LaundryModel.java` | Wenxin | Developed queue coordination, machine assignment, input validation, and dryer requests with GenAI assistance. |
-| `MachineTest.java` | Wenxin | Prepared tests for machine state changes and exceptions with GenAI assistance. |
-| `LaundryModelTest.java` | Wenxin | Prepared tests for FIFO service, validation, dryer transfers, and state protection with GenAI assistance. |
-| `LaundryApp.java` | Wenxin | Prepared the application entry point with GenAI assistance. |
-| `LinkedQueue.java` | Yug | Wrote the linked queue implementation. |
-| `Visitor.java` | Yug | Wrote visitor fields, constructor, and getters. |
-| `LaundryView.java` | Ashwin | Developed the Swing interface and event-listener connections. |
-| `LaundryController.java` | Ashwin | Developed user-action handling and view refresh logic. |
+| `MachineType.java` | Wenxin | Implemented and documented equipment types with GenAI assistance. |
+| `Machine.java` | Wenxin | Implemented machine state, assignment, release, and validation with GenAI assistance. |
+| `LaundryModel.java` | Wenxin | Implemented machine allocation, validation, dryer requests, and automatic transfers with GenAI assistance. |
+| `MachineTest.java` | Wenxin | Added tests for machine state changes and invalid operations with GenAI assistance. |
+| `LaundryModelTest.java` | Wenxin | Added model tests, including automatic-transfer cases, with GenAI assistance. |
+| `LaundryApp.java` | Wenxin | Added the application entry point with GenAI assistance. |
+| `LinkedQueue.java` | Yug | Implemented the singly linked FIFO queue. |
+| `Visitor.java` | Yug, Wenxin | Yug wrote the original class. Wenxin added the drying preference, constructor overload, and documentation with GenAI assistance. |
+| `LaundryView.java` | Ashwin, Wenxin | Ashwin wrote the original interface. Wenxin added the automatic-drying checkbox and its input behavior with GenAI assistance. |
+| `LaundryController.java` | Ashwin, Wenxin | Ashwin wrote the original controller. Wenxin connected the drying preference to registration and updated completion messages with GenAI assistance. |
+| `LaundryControllerTest.java` | Ashwin | Existing controller tests; not yet updated for automatic drying. |
+| `LaundryViewTest.java` | Ashwin | Existing view tests; not yet updated for automatic drying. |
 
 ### GenAI Note
 
-Wenxin used ChatGPT to refine the project specification, review my code, help write model methods and Javadoc comments, suggest test cases, and draft README reflection sections.
-Yug used ChatGPT to debug LinkedQueue class and to verify my class methods and fields align with our spec.
-Ashwin used ChatGPT to help outline the LaundryView and LaundryController classes. He first asked for an outline, then sample methods and fields. He used the general ideas but adjusted them for the project. ChatGPT helped with planning and structure, but the code still needed to be adapted and tested.
+Wenxin used ChatGPT to help implement and review automatic drying, connect the checkbox to the controller and model, suggest test cases, and draft the README reflection on how our design supported the change.
